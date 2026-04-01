@@ -10,7 +10,7 @@ const S = {
 };
 
 function selLoc(name, prov, dist, lat, lon, count){
-  S._fullRaw = null; // reset on new location
+  S._fullRaw = null; S.fullYearly = null; // reset on new location
   S.name=name; S.prov=prov; S.dist=dist; S.lat=lat; S.lon=lon; S.count=count;
   // Update header
   document.getElementById('lname').textContent    = name;
@@ -81,32 +81,35 @@ function geoToSvg(lat,lon){
   };
 }
 
+MAP.addEventListener('mousemove', e=>{
+  const pt=svgPt(e.clientX,e.clientY);
+  const g=svgToGeo(pt.x,pt.y);
+  document.getElementById('cbar').textContent=`Lat ${g.lat.toFixed(3)}  ·  Lon ${g.lon.toFixed(3)}`;
+  if(isDown){
+    const dx=(e.clientX-startX)/MAP.getBoundingClientRect().width*vb.w;
+    const dy=(e.clientY-startY)/MAP.getBoundingClientRect().height*vb.h;
+    if(Math.abs(e.clientX-startX)+Math.abs(e.clientY-startY)>4) didMove=true;
+    setVB(startVBX-dx, startVBY-dy, vb.w, vb.h);
+  }
+});
 MAP.addEventListener('mousedown', e=>{
   if(e.button!==0) return;
   isDown=true; didMove=false;
   startX=e.clientX; startY=e.clientY;
   startVBX=vb.x; startVBY=vb.y;
-});
-MAP.addEventListener('mousemove', e=>{
-  const pt=svgPt(e.clientX,e.clientY);
-  const g=svgToGeo(pt.x,pt.y);
-  document.getElementById('cbar').textContent=`Lat ${g.lat.toFixed(3)}  ·  Lon ${g.lon.toFixed(3)}`;
-  if(!isDown) return;
-  const dx=(e.clientX-startX)/MAP.getBoundingClientRect().width*vb.w;
-  const dy=(e.clientY-startY)/MAP.getBoundingClientRect().height*vb.h;
-  if(Math.abs(e.clientX-startX)+Math.abs(e.clientY-startY)>4) didMove=true;
-  setVB(startVBX-dx, startVBY-dy, vb.w, vb.h);
+  MAP.classList.add('grabbing');
 });
 MAP.addEventListener('mouseup', e=>{
   if(!isDown) return;
   isDown=false;
+  MAP.classList.remove('grabbing');
   if(!didMove && S.clickMode){
     const pt=svgPt(e.clientX,e.clientY);
     const g=svgToGeo(pt.x,pt.y);
     custPt(g.lat,g.lon,pt.x,pt.y);
   }
 });
-MAP.addEventListener('mouseleave',()=>{ isDown=false; });
+MAP.addEventListener('mouseleave',()=>{ isDown=false; MAP.classList.remove('grabbing'); });
 MAP.addEventListener('wheel', e=>{
   e.preventDefault();
   const pt=svgPt(e.clientX,e.clientY);
@@ -182,31 +185,35 @@ MAP.addEventListener('click', function(e) {
   }
 }, false);
 
-// ── DISTRICT PATHS — event delegation ────────────────────
+// ── DISTRICT PATHS — direct listeners ────────────────────
 const dlayer = document.getElementById('dlayer');
-dlayer.addEventListener('mouseenter', e=>{
-  const p=e.target.closest('.d-path'); if(!p) return;
-  showTip(
-    p.dataset.district.replace(/_/g,' '),
-    'District · '+p.dataset.province.replace(/_/g,' '),
-    p.dataset.lat+'°N   '+p.dataset.lon+'°E',
-    'Click to select district', e
-  );
-  p.style.filter='brightness(1.3)';
-  p.style.strokeWidth='2';
-  p.style.stroke='rgba(255,255,255,0.6)';
-}, true);
-dlayer.addEventListener('mousemove', e=>{
-  const p=e.target.closest('.d-path'); if(!p) return;
-  TIP.style.left=(e.clientX+16)+'px'; TIP.style.top=(e.clientY-32)+'px';
-}, true);
-dlayer.addEventListener('mouseleave', e=>{
-  const p=e.target.closest('.d-path'); if(!p) return;
-  hideTip();
-  if(!p.classList.contains('sel-d')){
-    p.style.filter=''; p.style.strokeWidth='0.8'; p.style.stroke='#0d0d0d';
-  }
-}, true);
+document.querySelectorAll('.d-path').forEach(path => {
+  path.addEventListener('mouseover', function(e){
+    showTip(
+      this.dataset.district.replace(/_/g,' '),
+      'District · '+this.dataset.province.replace(/_/g,' '),
+      this.dataset.lat+'°N   '+this.dataset.lon+'°E',
+      'Click to select district', e
+    );
+    if(!this.classList.contains('sel-d')){
+      this.style.filter='brightness(1.3)';
+      this.style.strokeWidth='2';
+      this.style.stroke='rgba(255,255,255,0.6)';
+    }
+  });
+  path.addEventListener('mousemove', function(e){
+    TIP.style.left=(e.clientX+16)+'px';
+    TIP.style.top=(e.clientY-32)+'px';
+  });
+  path.addEventListener('mouseout', function(){
+    hideTip();
+    if(!this.classList.contains('sel-d')){
+      this.style.filter='';
+      this.style.strokeWidth='0.8';
+      this.style.stroke='#0d0d0d';
+    }
+  });
+});
 
 
 // ── SETTLEMENT DOTS (SVG circles) ─────────────────────────
@@ -327,13 +334,13 @@ document.getElementById('cmBtn')?.addEventListener('click',function(){
   S.clickMode=!S.clickMode;
   this.classList.toggle('on',S.clickMode);
   document.getElementById('cbadge').style.display=S.clickMode?'block':'none';
-  MAP.className=S.clickMode?'cross':'grab';
+  MAP.className=S.clickMode?'cross':'';
 });
 function custPt(lat,lon,sx,sy){
   S.clickMode=false;
   document.getElementById('cmBtn').classList.remove('on');
   document.getElementById('cbadge').style.display='none';
-  MAP.className='grab';
+  MAP.className='';
   // Place marker dot
   const NS='http://www.w3.org/2000/svg';
   let cm=document.getElementById('custMarker');
@@ -401,7 +408,7 @@ if(tlayer){
     hideTip();
     p.style.filter=''; p.style.strokeWidth='0.4'; p.style.stroke='#111';
   }, true);
-  
+}
 // ── INIT ─────────────────────────────────────────────────
 // Settlement dots removed — only national/province/district/tehsil boundaries shown
 document.getElementById('dotlayer').style.display='none';
@@ -491,8 +498,8 @@ function cmpChartOpts(yLabel, title) {
       title:{ display:false }
     },
     scales:{
-      x:{ ticks:{color:'var(--txt3)',font:{size:10}}, grid:{color:'rgba(148,163,184,.07)'} },
-      y:{ ticks:{color:'var(--txt3)',font:{size:10}, callback:v=>v+yLabel}, grid:{color:'rgba(148,163,184,.07)'} }
+      x:{ ticks:{color:'#94a3b8',font:{size:10}}, grid:{color:'rgba(255,255,255,0.07)'} },
+      y:{ ticks:{color:'#94a3b8',font:{size:10}, callback:v=>v+yLabel}, grid:{color:'rgba(255,255,255,0.07)'} }
     }
   };
 }
@@ -1071,6 +1078,7 @@ function applySummaryToState(summary){
     avgWind:   sy.WS2M[i],
     avgSolar:  sy.SOLAR[i],
   }));
+  S.fullYearly = S.yearly; // save full-range yearly for Trends tab
 
   // ── Build S.monthly from climate normals ───────────────────
   const MN_LABELS = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
@@ -1293,8 +1301,8 @@ const fT=n=>isNaN(n)?'—':n.toFixed(1)+'°';
 const fP=n=>isNaN(n)?'—':n.toFixed(0)+'mm';
 const fW=n=>isNaN(n)?'—':n.toFixed(1)+'m/s';
 const MN=['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
-const GC={x:{ticks:{color:'#94a3b8',font:{size:11},maxTicksLimit:12},grid:{color:'rgba(0,0,0,0.06)'}},
-          y:{ticks:{color:'#94a3b8',font:{size:11}},grid:{color:'rgba(0,0,0,0.06)'}}};
+const GC={x:{ticks:{color:'#94a3b8',font:{size:11},maxTicksLimit:12},grid:{color:'rgba(255,255,255,0.07)'}},
+          y:{ticks:{color:'#94a3b8',font:{size:11}},grid:{color:'rgba(255,255,255,0.07)'}}};
 
 // ── ANIMATED CHART ENGINE ────────────────────────────
 // A glowing dot travels the chart line automatically when data loads.
@@ -1459,8 +1467,8 @@ function mkC(id, type, labels, datasets){
         tooltip: { enabled: false }  // disabled — our dot label replaces it
       },
       scales: {
-        x: { ticks:{color:'#94a3b8',font:{size:11},maxTicksLimit:12}, grid:{color:'rgba(0,0,0,0.06)'} },
-        y: { ticks:{color:'#94a3b8',font:{size:11}}, grid:{color:'rgba(0,0,0,0.06)'} }
+        x: { ticks:{color:'#94a3b8',font:{size:11},maxTicksLimit:12}, grid:{color:'rgba(255,255,255,0.07)'} },
+        y: { ticks:{color:'#94a3b8',font:{size:11}}, grid:{color:'rgba(255,255,255,0.07)'} }
       }
     },
     plugins: [dotPlugin]
@@ -1510,18 +1518,36 @@ function calcStats(){
     const WS2M    = rd.WS2M    || [];
     const SOLAR   = rd.SOLAR   || [];
 
+    // ── Deduplicate by date (server may return multiple grid points per day) ──
+    // Average all values for the same date so stats aren't doubled/tripled
+    const dayMap = {};
+    rd.dates.forEach((d,i) => {
+      if(!dayMap[d]) dayMap[d] = {T2M:[],T2M_MAX:[],T2M_MIN:[],PREC:[],WS2M:[],SOLAR:[]};
+      if(ok(T2M[i]))     dayMap[d].T2M.push(T2M[i]);
+      if(ok(T2M_MAX[i])) dayMap[d].T2M_MAX.push(T2M_MAX[i]);
+      if(ok(T2M_MIN[i])) dayMap[d].T2M_MIN.push(T2M_MIN[i]);
+      if(ok(PREC[i]))    dayMap[d].PREC.push(PREC[i]);
+      if(ok(WS2M[i]))    dayMap[d].WS2M.push(WS2M[i]);
+      if(ok(SOLAR[i]))   dayMap[d].SOLAR.push(SOLAR[i]);
+    });
+    const dayAvg = arr => arr.length ? arr.reduce((a,b)=>a+b,0)/arr.length : null;
+    const uniqueDates = Object.keys(dayMap).sort();
+
     // ── Build S.yearly ──
     const yMap = {};
-    rd.dates.forEach((d,i) => {
+    uniqueDates.forEach(d => {
       const yr = getYr(d);
       if(!yr || yr.length !== 4) return;
+      const day = dayMap[d];
       if(!yMap[yr]) yMap[yr] = {year:yr, temps:[], maxTemps:[], minTemps:[], prec:[], wind:[], solar:[]};
-      if(ok(T2M[i]))     yMap[yr].temps.push(T2M[i]);
-      if(ok(T2M_MAX[i])) yMap[yr].maxTemps.push(T2M_MAX[i]);
-      if(ok(T2M_MIN[i])) yMap[yr].minTemps.push(T2M_MIN[i]);
-      if(ok(PREC[i]))    yMap[yr].prec.push(PREC[i]);
-      if(ok(WS2M[i]))    yMap[yr].wind.push(WS2M[i]);
-      if(ok(SOLAR[i]))   yMap[yr].solar.push(SOLAR[i]);
+      const t=dayAvg(day.T2M), mx=dayAvg(day.T2M_MAX), mn=dayAvg(day.T2M_MIN);
+      const p=dayAvg(day.PREC), w=dayAvg(day.WS2M), s=dayAvg(day.SOLAR);
+      if(t!=null)  yMap[yr].temps.push(t);
+      if(mx!=null) yMap[yr].maxTemps.push(mx);
+      if(mn!=null) yMap[yr].minTemps.push(mn);
+      if(p!=null)  yMap[yr].prec.push(p);
+      if(w!=null)  yMap[yr].wind.push(w);
+      if(s!=null)  yMap[yr].solar.push(s);
     });
 
     const avg = arr => arr.length ? arr.reduce((a,b)=>a+b,0)/arr.length : null;
@@ -1538,16 +1564,18 @@ function calcStats(){
         avgSolar:  avg(y.solar),
       }));
 
-    // ── Build S.monthly ──
+    // ── Build S.monthly (use deduplicated daily averages) ──
     const mMap = {};
     for(let i=1; i<=12; i++) mMap[i] = {month:i, temps:[], prec:[], wind:[], solar:[]};
-    rd.dates.forEach((d,i) => {
+    uniqueDates.forEach(d => {
       const mo = getMo(d);
       if(!mo || mo < 1 || mo > 12) return;
-      if(ok(T2M[i]))  mMap[mo].temps.push(T2M[i]);
-      if(ok(PREC[i])) mMap[mo].prec.push(PREC[i]);
-      if(ok(WS2M[i])) mMap[mo].wind.push(WS2M[i]);
-      if(ok(SOLAR[i]))mMap[mo].solar.push(SOLAR[i]);
+      const day = dayMap[d];
+      const t=dayAvg(day.T2M), p=dayAvg(day.PREC), w=dayAvg(day.WS2M), s=dayAvg(day.SOLAR);
+      if(t!=null) mMap[mo].temps.push(t);
+      if(p!=null) mMap[mo].prec.push(p);
+      if(w!=null) mMap[mo].wind.push(w);
+      if(s!=null) mMap[mo].solar.push(s);
     });
 
     S.monthly = Object.values(mMap).map(m => ({
@@ -1568,7 +1596,7 @@ function calcStats(){
 function renderRes(){
   const rd=S.raw, cr=document.getElementById('cres');
   cr.className='fi'; cr.style.display='flex';
-  const nD=rd.dates.length, nY=new Set(rd.dates.map(d=>d.slice(0,4))).size;
+  const nD=new Set(rd.dates).size, nY=new Set(rd.dates.map(d=>d.slice(0,4))).size;
   const aT=av(rd.T2M), mxT=Math.max(...vf(rd.T2M_MAX)), mnT=Math.min(...vf(rd.T2M_MIN));
   const aP=vf(rd.PREC).reduce((a,b)=>a+b,0)/nY, aW=av(rd.WS2M);
   cr.innerHTML=`
@@ -1742,7 +1770,7 @@ function showExMonths(year){
     options:{responsive:true,maintainAspectRatio:true,
       plugins:{legend:{display:true,labels:{color:'#94a3b8',font:{size:7},boxWidth:8}}},
       scales:{
-        x:{ticks:{color:'#94a3b8',font:{size:7}},grid:{color:'rgba(0,0,0,0.06)'}},
+        x:{ticks:{color:'#94a3b8',font:{size:7}},grid:{color:'rgba(255,255,255,0.07)'}},
         y1:{position:'left',ticks:{color:'#06b6d4',font:{size:7}},grid:{color:'rgba(30,50,80,.2)'}},
         y2:{position:'right',ticks:{color:'#4a9eff',font:{size:7}},grid:{display:false}}
       }}
@@ -1963,8 +1991,8 @@ function mkYChart(id, type, labels, datasets, onClickYear) {
         }
       },
       scales: {
-        x: { ticks: { color: '#3a5070', font: { size: 8 }, maxTicksLimit: 12 }, grid: { color: 'rgba(0,0,0,0.06)' } },
-        y: { ticks: { color: '#3a5070', font: { size: 8 } }, grid: { color: 'rgba(0,0,0,0.06)' } }
+        x: { ticks: { color: '#94a3b8', font: { size: 8 }, maxTicksLimit: 12 }, grid: { color: 'rgba(255,255,255,0.07)' } },
+        y: { ticks: { color: '#94a3b8', font: { size: 8 } }, grid: { color: 'rgba(255,255,255,0.07)' } }
       }
     },
     plugins: [dotPlugin, pinPlugin]
@@ -2306,7 +2334,7 @@ const BULK_FROM = '1995-01-01';
 const BULK_TO   = '2025-12-31';
 
 // ── DECADE + YEAR PICKER ──────────────────────────────────────
-let _selectedDecadeFrom = 2010;
+let _selectedDecadeFrom = 2011;
 let _selectedDecadeTo   = 2019;
 let _selectedYear       = null; // null = whole decade
 
@@ -2317,19 +2345,24 @@ function getFromTo() {
   return { from: _selectedDecadeFrom + '-01-01', to: _selectedDecadeTo + '-12-31' };
 }
 
+function exactDays(fromYear, fromMonth, fromDay, toYear, toMonth, toDay) {
+  const a = new Date(fromYear, fromMonth - 1, fromDay);
+  const b = new Date(toYear,   toMonth - 1,   toDay);
+  return Math.round((b - a) / 86400000) + 1;
+}
 function updateFetchLabel() {
   const lbl = document.getElementById('fetchRangeLabel');
   const btn = document.getElementById('fbtn');
   if (_selectedYear) {
-    if (lbl) lbl.textContent = _selectedYear + ' · ~365 days';
+    const isLeap = (_selectedYear % 4 === 0 && _selectedYear % 100 !== 0) || _selectedYear % 400 === 0;
+    const days = isLeap ? 366 : 365;
+    if (lbl) lbl.textContent = _selectedYear + ' · ' + days.toLocaleString() + ' days';
     if (btn) btn.textContent = 'Fetch ' + _selectedYear + ' Data';
   } else {
-    const days = (_selectedDecadeTo - _selectedDecadeFrom + 1) * 365;
-    if (lbl) lbl.textContent = _selectedDecadeFrom + '-' + _selectedDecadeTo + ' · ~' + days.toLocaleString() + ' days';
-   const label = (_selectedDecadeTo - _selectedDecadeFrom <= 10) 
-  ? _selectedDecadeFrom + 's Data' 
-  : _selectedDecadeFrom + '–' + _selectedDecadeTo + ' Data';
-if (btn) btn.textContent = 'Fetch ' + label;
+    const days = exactDays(_selectedDecadeFrom, 1, 1, _selectedDecadeTo, 12, 31);
+    if (lbl) lbl.textContent = _selectedDecadeFrom + '–' + _selectedDecadeTo + ' · ' + days.toLocaleString() + ' days';
+    const label = _selectedDecadeFrom + '–' + _selectedDecadeTo + ' Data';
+    if (btn) btn.textContent = 'Fetch ' + label;
   }
 }
 
@@ -2484,7 +2517,6 @@ async function tryAutoLoad(lat, lon, name, prov, dist){
   observer.observe(side, { attributes:true, attributeFilter:['class'] });
 })();
 // ── END SIDEBAR TOGGLE ────────────────────────────────────
-}
 
 
 
@@ -2567,29 +2599,51 @@ async function tryAutoLoad(lat, lon, name, prov, dist){
   const mavg = arr => arr.length ? arr.reduce((a,b)=>a+b,0)/arr.length : null;
 
   let _period = 'decade'; // 'decade' | '30yr'
+  let _trendYearly = []; // full-range yearly data used by this tab
 
-  // ── Compute period averages from S.yearly ────────────────────
+  // ── Linear regression on yearly data ─────────────────────────
+  function linReg(points) {
+    // points: [{x: year, y: value}, ...]
+    const n = points.length;
+    if (n < 3) return null;
+    const sumX  = points.reduce((s,p)=>s+p.x, 0);
+    const sumY  = points.reduce((s,p)=>s+p.y, 0);
+    const sumXY = points.reduce((s,p)=>s+p.x*p.y, 0);
+    const sumX2 = points.reduce((s,p)=>s+p.x*p.x, 0);
+    const slope = (n*sumXY - sumX*sumY) / (n*sumX2 - sumX*sumX);
+    const intercept = (sumY - slope*sumX) / n;
+    // R² calculation
+    const meanY = sumY / n;
+    const ssTot = points.reduce((s,p)=>s+(p.y-meanY)**2, 0);
+    const ssRes = points.reduce((s,p)=>s+(p.y-(slope*p.x+intercept))**2, 0);
+    const r2 = ssTot > 0 ? 1 - ssRes/ssTot : 0;
+    return { slope, intercept, r2 };
+  }
+
+  // ── Compute period averages from _trendYearly ────────────────────
   function getPeriodData(field) {
-    const yearly = (S.yearly || []).filter(y => y[field] != null && isFinite(y[field]));
+    const yearly = (_trendYearly || []).filter(y => y[field] != null && isFinite(y[field]));
     if (!yearly.length) return null;
 
     if (_period === 'decade') {
-      // Group by decade
       const dec = {};
       yearly.forEach(y => {
-        const dk = Math.floor(+y.year / 10) * 10;
+        // Use actual date ranges: 1995-2000, 2001-2010, 2011-2019, 2020-2025
+        const yr = +y.year;
+        const dk = yr <= 2000 ? '1995–2000'
+                 : yr <= 2010 ? '2001–2010'
+                 : yr <= 2019 ? '2011–2019'
+                 : '2020–2025';
         if (!dec[dk]) dec[dk] = [];
         dec[dk].push(y[field]);
       });
-      return Object.entries(dec)
-        .sort((a,b) => +a[0] - +b[0])
-        .map(([dk, vals]) => ({
-          label: `${dk}s`,
-          avg: +mavg(vals).toFixed(2),
-          count: vals.length,
-        }));
+      const order = ['1995–2000','2001–2010','2011–2019','2020–2025'];
+      return order.filter(k => dec[k]).map(k => ({
+        label: k,
+        avg: +mavg(dec[k]).toFixed(2),
+        count: dec[k].length,
+      }));
     } else {
-      // '30yr' — split into equal thirds (or two halves if < 20yr)
       const n = yearly.length;
       if (n < 6) return null;
       const sliceSize = Math.floor(n / 3);
@@ -2598,7 +2652,7 @@ async function tryAutoLoad(lat, lon, name, prov, dist){
         yearly.slice(sliceSize, sliceSize * 2),
         yearly.slice(sliceSize * 2),
       ];
-      return parts.map((part, i) => ({
+      return parts.map(part => ({
         label: `${part[0].year}–${part[part.length-1].year}`,
         avg: +mavg(part.map(y => y[field])).toFixed(2),
         count: part.length,
@@ -2611,6 +2665,7 @@ async function tryAutoLoad(lat, lon, name, prov, dist){
     const rows = getPeriodData(cfg.field);
     if (!rows || rows.length < 2) return '';
 
+    const yearly = (_trendYearly || []).filter(y => y[cfg.field] != null && isFinite(y[cfg.field]));
     const vals = rows.map(r => r.avg);
     const mxVal = Math.max(...vals);
     const mnVal = Math.min(...vals);
@@ -2620,7 +2675,26 @@ async function tryAutoLoad(lat, lon, name, prov, dist){
     const arrow = direction==='up' ? '↑' : direction==='dn' ? '↓' : '→';
     const overallAvg = +mavg(vals).toFixed(1);
 
-    // Badge text
+    // Linear regression on raw yearly data
+    const reg = linReg(yearly.map(y => ({ x: +y.year, y: +y[cfg.field] })));
+    const slopePerDecade = reg ? +(reg.slope * 10).toFixed(2) : null;
+    const r2pct = reg ? Math.round(reg.r2 * 100) : null;
+    const confidence = reg ? (reg.r2 > 0.6 ? 'High' : reg.r2 > 0.3 ? 'Moderate' : 'Low') : null;
+    const confColor  = reg ? (reg.r2 > 0.6 ? '#22c55e' : reg.r2 > 0.3 ? '#f59e0b' : '#94a3b8') : null;
+
+    // Hottest / coldest / wettest / driest year
+    const bestYear  = yearly.reduce((a,b) => b[cfg.field] > a[cfg.field] ? b : a);
+    const worstYear = yearly.reduce((a,b) => b[cfg.field] < a[cfg.field] ? b : a);
+    const peakLabel = cfg.field === 'totalPrec' ? 'Wettest' : cfg.field === 'avgWind' ? 'Windiest' : 'Hottest';
+    const lowLabel  = cfg.field === 'totalPrec' ? 'Driest'  : cfg.field === 'avgWind' ? 'Calmest'  : 'Coolest';
+
+    // Anomalies: years where deviation > 1.5 × std dev
+    const mean = mavg(yearly.map(y => +y[cfg.field]));
+    const std  = Math.sqrt(yearly.reduce((s,y) => s + (+y[cfg.field]-mean)**2, 0) / yearly.length);
+    const anomalies = yearly.filter(y => Math.abs(+y[cfg.field] - mean) > 1.5 * std)
+                             .sort((a,b) => Math.abs(+b[cfg.field]-mean) - Math.abs(+a[cfg.field]-mean))
+                             .slice(0, 3);
+
     const badgeText = Math.abs(totalChange) < (cfg.threshold || 0.05)
       ? '→ No change'
       : `${arrow} ${totalChange > 0 ? '+' : ''}${totalChange}${cfg.unit} total`;
@@ -2632,32 +2706,26 @@ async function tryAutoLoad(lat, lon, name, prov, dist){
       const pct = Math.max(5, ((r.avg - mnVal) / (mxVal - mnVal || 1)) * 88 + 5);
       const id = uid();
       animItems.push({ id, pct });
-
-      // Change from previous period
       const prev = i > 0 ? rows[i-1].avg : null;
-      const chg = prev != null ? +(r.avg - prev).toFixed(2) : null;
+      const chg  = prev != null ? +(r.avg - prev).toFixed(2) : null;
       let chgHtml = '';
       if (chg != null) {
         const isUp = chg > (cfg.threshold || 0.05);
         const isDn = chg < -(cfg.threshold || 0.05);
-        chgHtml = isUp
-          ? `<span style="color:#f87171">+${chg}${cfg.unit}</span>`
-          : isDn
-          ? `<span style="color:#60a5fa">${chg}${cfg.unit}</span>`
-          : `<span style="color:#94a3b8">≈</span>`;
+        chgHtml = isUp  ? `<span style="color:#f87171">+${chg}${cfg.unit}</span>`
+                : isDn  ? `<span style="color:#60a5fa">${chg}${cfg.unit}</span>`
+                :         `<span style="color:#94a3b8">≈</span>`;
       }
-
       return `<div class="dtr-row">
         <div class="dtr-row-lbl">${r.label}</div>
         <div class="dtr-row-bar-wrap">
-          <div id="${id}" class="dtr-row-bar" style="background:${cfg.color};transition-delay:${i * 0.09}s"></div>
+          <div id="${id}" class="dtr-row-bar" style="background:${cfg.color};transition-delay:${i*0.09}s"></div>
         </div>
         <div class="dtr-row-val" style="color:${cfg.color}">${f1(r.avg)}${cfg.unit}</div>
         <div class="dtr-row-chg">${chgHtml}</div>
       </div>`;
     }).join('');
 
-    // Animate bars
     setTimeout(() => {
       animItems.forEach(({ id, pct }) => {
         const el = document.getElementById(id);
@@ -2665,16 +2733,36 @@ async function tryAutoLoad(lat, lon, name, prov, dist){
       });
     }, 60);
 
-    // Summary sentence
     const first = rows[0], last = rows[rows.length-1];
     let summary = '';
     if (direction === 'up') {
-      summary = `<strong style="color:${cfg.color}">${cfg.label} increased by ${totalChange > 0 ? '+' : ''}${totalChange}${cfg.unit}</strong> from ${first.label} (${f1(first.avg)}${cfg.unit}) to ${last.label} (${f1(last.avg)}${cfg.unit}).`;
+      summary = `<strong style="color:${cfg.color}">${cfg.label} increased by +${totalChange}${cfg.unit}</strong> from ${first.label} (${f1(first.avg)}${cfg.unit}) to ${last.label} (${f1(last.avg)}${cfg.unit}).`;
     } else if (direction === 'dn') {
       summary = `<strong style="color:${cfg.color}">${cfg.label} decreased by ${totalChange}${cfg.unit}</strong> from ${first.label} (${f1(first.avg)}${cfg.unit}) to ${last.label} (${f1(last.avg)}${cfg.unit}).`;
     } else {
-      summary = `<strong style="color:#94a3b8">${cfg.label} remained stable</strong> — avg ${overallAvg}${cfg.unit}. No significant change detected.`;
+      summary = `<strong style="color:#94a3b8">${cfg.label} remained stable</strong> — overall avg ${overallAvg}${cfg.unit}. No significant trend detected.`;
     }
+
+    const anomHtml = anomalies.length ? `
+      <div style="margin-top:8px;font-size:.65rem;color:var(--txt3)">
+        <span style="font-weight:600;color:var(--txt2)">Notable years: </span>
+        ${anomalies.map(y => {
+          const dev = +(+y[cfg.field] - mean).toFixed(1);
+          const c = dev > 0 ? '#f87171' : '#60a5fa';
+          return `<span style="color:${c}">${y.year} (${dev>0?'+':''}${dev}${cfg.unit})</span>`;
+        }).join(' · ')}
+      </div>` : '';
+
+    const regHtml = reg ? `
+      <div style="display:flex;gap:10px;flex-wrap:wrap;margin-top:7px;font-size:.65rem">
+        <span style="color:var(--txt3)">Trend: <strong style="color:${cfg.color}">${slopePerDecade>0?'+':''}${slopePerDecade}${cfg.unit}/decade</strong></span>
+        <span style="color:var(--txt3)">R²: <strong style="color:${confColor}">${r2pct}%</strong></span>
+        <span style="color:var(--txt3)">Confidence: <strong style="color:${confColor}">${confidence}</strong></span>
+      </div>
+      <div style="display:flex;gap:10px;flex-wrap:wrap;margin-top:5px;font-size:.65rem">
+        <span style="color:var(--txt3)">${peakLabel}: <strong style="color:#fbbf24">${bestYear.year} (${f1(bestYear[cfg.field])}${cfg.unit})</strong></span>
+        <span style="color:var(--txt3)">${lowLabel}: <strong style="color:#38bdf8">${worstYear.year} (${f1(worstYear[cfg.field])}${cfg.unit})</strong></span>
+      </div>` : '';
 
     return `<div class="dtr-card" style="border-color:${cfg.color}44;--dtr-accent:${cfg.color}">
       <div class="dtr-card-head" style="background:${cfg.color}0e">
@@ -2685,7 +2773,7 @@ async function tryAutoLoad(lat, lon, name, prov, dist){
         <span class="dtr-badge ${direction}">${badgeText}</span>
       </div>
       <div class="dtr-rows">${rowsHtml}</div>
-      <div class="dtr-summary" style="border-left-color:${cfg.color}">${summary}</div>
+      <div class="dtr-summary" style="border-left-color:${cfg.color}">${summary}${regHtml}${anomHtml}</div>
     </div>`;
   }
 
@@ -2701,7 +2789,10 @@ async function tryAutoLoad(lat, lon, name, prov, dist){
     const area = document.getElementById('dtr-area');
     if (!area) return;
 
-    if (!S.yearly?.length) {
+    // Prefer full 30-yr yearly data for decade comparison
+    _trendYearly = S.fullYearly || S.yearly || [];
+
+    if (!_trendYearly.length) {
       area.innerHTML = `<div class="dtr-empty">
         <div style="font-size:1.4rem;margin-bottom:8px">📍</div>
         <div style="font-size:.72rem;font-weight:600;color:var(--txt2);margin-bottom:4px">Select a district</div>
@@ -2711,8 +2802,8 @@ async function tryAutoLoad(lat, lon, name, prov, dist){
     }
 
     const loc = S.name||'', prov=(S.prov||'').replace(/_/g,' ');
-    const nYr = S.yearly.length;
-    const yr1 = S.yearly[0]?.year, yr2 = S.yearly[nYr-1]?.year;
+    const nYr = _trendYearly.length;
+    const yr1 = _trendYearly[0]?.year, yr2 = _trendYearly[nYr-1]?.year;
 
     area.innerHTML = `<div class="dtr-wrap">
       <!-- Location header -->
@@ -2743,7 +2834,8 @@ async function tryAutoLoad(lat, lon, name, prov, dist){
   // ── Auto-render on district change ────────────────────────────
   let _lastLoc = '';
   setInterval(() => {
-    if (S.name && S.name !== _lastLoc && S.yearly?.length) {
+    const hasData = (S.fullYearly || S.yearly)?.length;
+    if (S.name && S.name !== _lastLoc && hasData) {
       _lastLoc = S.name;
       const tab = document.getElementById('tab-ai');
       if (tab?.classList.contains('active')) render();
@@ -2752,7 +2844,7 @@ async function tryAutoLoad(lat, lon, name, prov, dist){
 
   // ── Render when tab opened ────────────────────────────────────
   document.querySelector('.stab[data-t="ai"]')?.addEventListener('click', () => {
-    setTimeout(() => { if (S.yearly?.length) render(); }, 100);
+    setTimeout(() => { if ((S.fullYearly || S.yearly)?.length) render(); }, 100);
   });
 
 })();

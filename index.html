@@ -6,9 +6,10 @@
 <title>30 Yr Weather Data of Pakistan — NDMA</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&family=JetBrains+Mono:wght@400;500&family=Syne:wght@700&display=swap" rel="stylesheet">
 <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.min.js"></script>
 <link rel="stylesheet" href="style.css">
+<link rel="icon" href="data:,">
 </head>
 <body>
 <div class="app">
@@ -24,7 +25,7 @@
     </radialGradient>
     <filter id="glow"><feGaussianBlur stdDeviation="3" result="blur"/><feMerge><feMergeNode in="blur"/><feMergeNode in="SourceGraphic"/></feMerge></filter>
   </defs>
-  <rect width="940" height="1020" fill="url(#mapbg)"/>
+  <rect width="970" height="1020" fill="url(#mapbg)"/>
   <g id="mapGrid" opacity="0.06" stroke="#94a3b8" stroke-width="0.3">
     <line x1="0" y1="0" x2="940" y2="0"/>
     <line x1="0" y1="100" x2="940" y2="100"/>
@@ -785,7 +786,7 @@
     <path class="t-path" data-tehsil="Site Town" data-district="West Karachi" data-province="Sindh" data-lat="24.9067" data-lon="67.0036" fill="#1a6bb5" fill-opacity="0.7" stroke="#111" stroke-width="0.4" stroke-linejoin="round" d="M332.6,889.59 L331.06,891.67 L331.59,894.88 L328.68,894.21 L332.6,889.59Z"/>
   </g>
 
-  <g id="ioklayer">
+  <g id="ioklayer" pointer-events="none">
     <path fill="#888888" fill-opacity="0.55" stroke="#aaaaaa" stroke-width="1.2"
       stroke-dasharray="4 3" stroke-linejoin="round"
       d="M879.05,135.82 L882.49,138.85 L887.7,134.33 L890.66,134.51 L891.24,137.29 L888.92,144.85 L888.48,150.47 L895.02,165.77 L895.93,173.82 L899.14,180.62 L903.43,196.65 L907.67,199.94 L922.13,203.69 L926.49,207.64 L929.08,211.67 L935.19,214.74 L937.93,219.26 L938.56,222.56 L937.93,225.85 L934.23,230.09 L925.45,235.74 L925.0,241.82 L928.35,255.15 L928.05,273.47 L929.04,277.67 L934.88,285.3 L936.5,285.95 L937.45,289.06 L940.72,290.45 L941.13,293.69 L943.28,295.35 L943.05,297.13 L947.01,300.11 L946.1,304.51 L947.51,312.29 L951.9,317.07 L950.84,320.19 L950.53,328.0 L953.0,328.75 L954.32,332.36 L952.88,335.98 L954.73,341.67 L951.81,347.54 L948.71,347.91 L945.91,350.74 L944.24,358.07 L939.34,357.68 L937.54,360.76 L934.43,358.1 L933.92,356.58 L929.72,353.73 L928.0,350.12 L927.12,345.57 L927.95,340.99 L925.97,337.62 L925.94,334.15 L919.38,339.54 L915.9,334.22 L906.19,329.22 L904.92,331.91 L901.11,334.6 L899.21,335.5 L897.03,334.09 L896.22,336.78 L893.95,335.37 L892.59,337.94 L890.68,337.55 L890.14,340.76 L887.78,339.99 L886.33,335.89 L883.97,333.58 L883.88,327.81 L881.79,325.76 L878.98,319.22 L875.72,315.25 L874.63,312.3 L872.45,312.69 L864.74,319.48 L858.66,321.02 L856.58,323.33 L855.4,323.33 L851.59,321.53 L849.59,319.22 L843.61,318.71 L838.26,313.33 L834.9,311.79 L831.36,306.79 L829.09,305.38 L824.2,297.44 L817.94,299.36 L815.58,296.28 L813.67,296.15 L811.68,298.08 L805.96,299.1 L803.79,300.9 L801.16,303.2 L800.16,309.1 L793.9,311.79 L784.92,320.51 L783.11,319.99 L781.02,317.43 L777.66,318.58 L776.49,320.51 L777.03,322.04 L778.66,322.94 L783.83,331.21 L781.57,333.64 L781.57,336.59 L783.56,337.74 L779.75,345.69 L773.76,353.12 L765.42,357.23 L763.42,362.74 L760.99,362.0 L761.07,360.04 L758.22,362.11 L753.69,359.93 L753.21,361.34 L750.93,359.26 L750.96,358.25 L749.41,358.11 L749.27,356.81 L746.1,355.89 L746.02,354.2 L743.01,355.36 L741.78,350.72 L737.64,349.13 L737.05,351.45 L733.88,352.71 L733.18,351.0 L731.23,351.28 L730.04,349.38 L727.17,349.03 L726.06,350.57 L720.44,349.88 L720.58,346.48 L719.07,345.52 L719.69,343.97 L718.61,344.36 L718.99,341.95 L717.93,340.74 L720.81,337.4 L718.9,335.35 L718.75,332.57 L721.3,324.25 L719.44,325.59 L718.84,325.04 L717.65,326.77 L718.96,328.32 L717.58,329.2 L717.9,330.84 L716.85,330.19 L714.94,331.14 L714.18,330.24 L711.51,331.36 L711.52,329.96 L710.12,329.88 L708.25,327.78 L706.81,324.25 L706.63,320.37 L701.51,318.13 L702.78,316.5 L701.98,310.86 L694.21,307.74 L694.63,305.99 L692.13,301.59 L685.95,297.36 L686.42,293.73 L688.0,292.5 L690.21,292.74 L694.0,288.79 L695.03,285.48 L694.51,281.97 L695.34,278.8 L694.0,277.3 L692.69,273.12 L689.62,271.07 L687.18,271.53 L684.63,267.1 L685.35,266.11 L685.06,263.97 L683.58,261.27 L685.67,259.82 L685.95,257.46 L688.57,253.95 L695.25,252.79 L699.49,249.05 L699.94,245.94 L699.15,244.69 L699.64,243.57 L697.24,239.62 L695.75,240.28 L692.51,238.01 L688.18,239.24 L686.49,238.66 L684.95,240.48 L681.83,239.56 L680.37,237.35 L680.72,233.96 L681.87,233.91 L681.94,232.1 L683.81,230.43 L683.65,229.09 L686.17,227.44 L685.46,226.97 L685.89,225.28 L685.14,221.94 L682.33,221.01 L682.69,219.0 L681.46,219.38 L682.47,217.22 L681.25,216.16 L678.24,218.3 L676.26,217.54 L676.2,216.53 L674.1,217.54 L672.94,216.69 L673.17,214.09 L675.65,210.75 L677.49,210.81 L679.88,208.89 L680.24,204.59 L683.36,200.79 L683.17,198.51 L681.99,198.15 L682.07,196.33 L684.05,192.03 L689.26,193.39 L690.89,192.62 L691.76,194.12 L692.95,194.21 L693.56,192.03 L697.81,189.27 L701.33,185.26 L709.84,185.54 L715.9,187.33 L718.59,190.75 L722.61,192.58 L732.83,193.12 L737.74,196.33 L740.73,194.42 L749.83,195.6 L748.87,198.17 L753.73,201.11 L754.7,202.79 L762.38,202.36 L767.51,204.11 L770.3,202.91 L772.65,204.68 L776.03,204.84 L784.93,195.95 L786.61,195.63 L788.62,192.23 L790.15,192.08 L792.9,195.49 L795.19,195.98 L796.45,194.21 L799.8,193.17 L799.8,192.05 L800.79,191.53 L800.17,190.14 L809.18,187.71 L808.97,186.17 L811.37,184.23 L817.51,187.84 L821.72,187.82 L823.22,183.5 L825.07,182.09 L825.46,174.1 L826.15,174.65 L830.67,172.31 L831.14,170.8 L837.41,174.41 L838.24,169.07 L879.75,132.74 L879.05,135.82Z"/>
@@ -973,7 +974,7 @@
     
 
     <!-- Coordinate bar -->
-    <div class="cbar" id="cbar" style="bottom:24px;left:50%;transform:translateX(-50%);margin-right:calc(var(--panel-w) / 2)">Lat — · Lon —</div>
+    <div class="cbar" id="cbar" style="bottom:24px;left:50%;transform:translateX(-50%);color:rgba(220,220,230,0.95)">Lat — · Lon —</div>
     <div class="cbadge" id="cbadge">✛ Click anywhere to set coordinates</div>
 
     <!-- Province legend -->
@@ -1092,11 +1093,11 @@
           <!-- Decade buttons -->
           <div class="slbl" style="margin-bottom:6px;margin-top:2px">Decade</div>
           <div class="prow" id="decadeRow" style="gap:5px;flex-wrap:wrap;margin-bottom:12px">
-            <button type="button" class="dec-btn" data-from="1990" data-to="1999">1990s</button>
-            <button type="button" class="dec-btn" data-from="2000" data-to="2009">2000s</button>
-            <button type="button" class="dec-btn active" data-from="2010" data-to="2019">2010s</button>
-            <button type="button" class="dec-btn" data-from="2015" data-to="2024">2015–24</button>
-            <button type="button" class="dec-btn" data-from="1995" data-to="2024">30 yr</button>
+            <button type="button" class="dec-btn" data-from="1995" data-to="2000">1995–2000</button>
+            <button type="button" class="dec-btn" data-from="2001" data-to="2010">2001–2010</button>
+            <button type="button" class="dec-btn active" data-from="2011" data-to="2019">2011–2019</button>
+            <button type="button" class="dec-btn" data-from="2020" data-to="2025">2020–2025</button>
+            <button type="button" class="dec-btn" data-from="1995" data-to="2025">30 yr</button>
           </div>
 
           <!-- Year drill-down -->

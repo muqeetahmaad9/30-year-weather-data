@@ -89,14 +89,14 @@ body::before {
 ═══════════════════════════════ */
 .map-wrap {
   position: absolute;
-  inset: 0;
+  top: 0; left: 0; bottom: 0;
+  right: var(--panel-w);
   background: #0a1220;
   overflow: hidden;
 }
 
-#MAP { width: 100%; height: 100%; display: block; user-select: none; }
-#MAP.grab { cursor: grab; }
-#MAP.grab:active { cursor: grabbing; }
+#MAP { width: 100%; height: 100%; display: block; user-select: none; cursor: grab; }
+#MAP.grabbing { cursor: grabbing; }
 #MAP.cross { cursor: crosshair; }
 
 /* District paths */
@@ -299,7 +299,7 @@ select.csel:hover { border-color: rgba(74,158,255,0.4); color: #fff; }
 
 /* Zoom buttons */
 .zoom-group {
-  position: absolute; bottom: 18px; right: calc(var(--panel-w) + 18px);
+  position: absolute; bottom: 18px; right: 18px;
   z-index: 100; display: flex; flex-direction: column; gap: 4px;
 }
 .zb {
@@ -322,7 +322,7 @@ select.csel:hover { border-color: rgba(74,158,255,0.4); color: #fff; }
   border: 1px solid rgba(255,255,255,0.1);
   padding: 5px 14px; border-radius: 8px;
   font-size: .68rem; font-family: 'JetBrains Mono', monospace;
-  color: rgba(24, 22, 22, 0.55); box-shadow: 0 2px 8px rgba(0,0,0,0.3);
+  color: rgba(220, 220, 230, 0.9); box-shadow: 0 2px 8px rgba(31, 30, 30, 0.877);
   pointer-events: none; z-index: 10; white-space: nowrap;
 }
 .cbadge {
