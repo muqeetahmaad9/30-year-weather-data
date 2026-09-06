@@ -34,7 +34,7 @@ Fetches and serves 30 years of historical weather data for Pakistan, with a brow
 
 ```bash
 python Pakclim_server.py
-# then open index.html
+# then open index.html   (see COMMANDS.md)
 ```
 
 ### 👤 Author
